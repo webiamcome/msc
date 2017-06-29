@@ -40,6 +40,8 @@
 	<div>
 		<button id="save" data-toggle="modal" data-target="#myModal" class="cst_button">保存</button>
 		<button id="rest" class="cst_button">重置</button>
+		<button id="zoom_in" class="cst_button">放大</button>
+		<button id="zoom_out" class="cst_button">缩小</button>
 	</div>
 	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
   <div class="modal-dialog modal-lg" role="document">
@@ -61,21 +63,23 @@
 	<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
     <script>
-		
+		/*获取画布*/
         var canvas = document.getElementById('canvas');
 		var rest = document.getElementById('rest');
+		var zoom_in = document.getElementById('zoom_in');
+		var zoom_out = document.getElementById('zoom_out');
         var ctx = canvas.getContext('2d');
 		var img = new Image();
 		/*先加载图片获取其宽高*/
 		var img_org = new Image();
-		img_org.src = "img/vue-transition.png";
+		img_org.src = "img/0001.JPG";
 		$('.img_org').attr('src',img_org.src);
 		img_org.onload = function (){
 			canvas.width = $('.img_org').width();
 			canvas.height = $('.img_org').height();
 			
 			img.crossOrigin = "Anonymous";
-			img.src = "img/vue-transition.png";//这里加ajax返回的图片路径
+			img.src = "img/0001.JPG";//这里加ajax返回的图片路径
 			img.onload = function(){
 			ctx.drawImage(img,0,0);
 			draw_rect.init(); //初始函数
@@ -90,23 +94,46 @@
 			start_posY: 0,//距离图片右边的值
 			width: 0,//图片马赛克宽
 			height: 0,//图片马赛克高
+            n: 1,
+            flag: false,
 			init: function (){
 				this.get_pos();
+				this.zoomIn();
 			},
 			get_pos: function (){//获取数据
 				var _self = this;
 				canvas.onmousedown = function (e){
-					
 					var target = e.target;
 					var posX = e.clientX - target.offsetLeft;
-					var posY = e.clientY - target.offsetTop;
+					var posY = e.pageY - target.offsetTop;
 					_self.start_posX = posX;
 					_self.start_posY = posY;
+                    _self.flag = true;
+
 				};
+				canvas.onmousemove = function (e){
+                    if(_self.flag == true){
+                        //ctx.clearRect(0,0,canvas.width,canvas.height);
+                        var target = e.target;
+                        var posX = e.clientX - target.offsetLeft;
+                        var posY = e.pageY - target.offsetTop;
+                        _self.width = posX - _self.start_posX;
+                        _self.height = posY - _self.start_posY;
+                        ctx.strokeStyle = '#F00';
+
+                        ctx.lineWidth = 4;
+
+                        ctx.beginPath();
+                        ctx.rect(_self.start_posX,_self.start_posY,_self.width,_self.height);
+                        ctx.stroke();
+                    }
+
+                };
 				canvas.onmouseup = function (e){
+                    _self.flag = false;
 					var target = e.target;
 					var posX = e.clientX - target.offsetLeft;
-					var posY = e.clientY - target.offsetTop;
+					var posY = e.pageY - target.offsetTop;
 					
 					_self.width = posX - _self.start_posX;
 					_self.height = posY - _self.start_posY;
@@ -131,10 +158,25 @@
 				console.log(typeof image);
 				$('.modal-body').empty();
 				$('.modal-body').append("<img src="+image+" class='img-responsive'/>");
-			}
+			},
+            zoomIn: function (){
+                var _self = this;
+			    zoom_in.onclick = function () {
+                    ctx.scale(0.5,0.5);
+			        /*_self.n++;
+                    ctx.save();
+                    $('.img_org').width($('.img_org').width()/_self.n);
+                    $('.img_org').height($('.img_org').height()/_self.n);
+                    canvas.width = $('.img_org').width();
+                    canvas.height = $('.img_org').height();
+                    console.log($('.img_org').width());
+                    console.log($('.img_org').width());
+                    ctx.restore();*/
+                }
+            }
 		}
 		rest.onclick = function (){
-			draw_rect.rest();	
+
 		}
 		
 

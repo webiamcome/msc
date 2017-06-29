@@ -9,11 +9,27 @@
   <title>Document</title>
  </head>
  <body>
-  <embed src="img/0001.JPG" width="1320" height="600" 
-	type="image/svg+xml"
-	pluginspage="http://www.adobe.com/svg/viewer/install/" />
+	<div style="margin-bottom: 20px;">
+        <button class="zoom_out">缩小</button>
+        <button class="zoom_in">放大</button>
+        <button class="rotate">旋转</button>
+        <button class="msc">打码</button>
+        <button class="save">保存</button>
+        <button class="cancel">撤销</button>
+    </div>
+	<div style="width:1320px;height:600px;">
+		<svg id="svg" width="4032" height="3024">
+			<image xlink:href="img/0001.JPG" x="0" y="0"/>
+		</svg>
+	</div>
+
+    <img src="data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg'><line x1='0' y1='0' x2='200' y2='200' style='stroke:rgb(255,0,0);stroke-width:2' /></svg>" />
+
 	<script type="text/javascript">
-	
+	    var svg = document.querySelector('svg');
+	    var img= document.querySelector('img');
+	    console.log(svg);
+	    console.log(img.src);
 	</script>
  </body>
 </html>
