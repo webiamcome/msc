@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>clock-copy</title>
+	<link rel="stylesheet" href="css/bootstrap.min.css" />
+    <style>
+        /*canvas居中*/
+		body{
+			width: 100vw;
+			height: 100vh;
+		}
+        div {
+            text-align: center;
+            
+        }
+        #canvas {
+            border: 1px solid #333333;
+        }
+		.cst_button {
+			outline: none;
+			border: 0;
+			padding: 10px 25px;
+			color: #e4393c;
+			font-size: 2rem;
+			border-radius: 4px;
+			background: #eee;
+			font-family: "simHei";
+			margin-right: 5px;
+		}
+		
+    </style>
+</head>
+<body>
+	<img class="img_org" style="display:block;visibility:hidden;position:absolute;"/>
+    <div id="photo">
+        <canvas id="canvas">您的浏览器不支持canvas</canvas>
+    </div>
+	
+	<div>
+		<button id="save" data-toggle="modal" data-target="#myModal" class="cst_button">保存</button>
+		<button id="rest" class="cst_button">重置</button>
+	</div>
+	<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+  <div class="modal-dialog modal-lg" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title" id="myModalLabel">图片处理效果预览</h4>
+      </div>
+      <div class="modal-body">
+        
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">取消</button>
+        <button type="button" class="btn btn-primary">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+	<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+    <script>
+		
+        var canvas = document.getElementById('canvas');
+		var rest = document.getElementById('rest');
+        var ctx = canvas.getContext('2d');
+		var img = new Image();
+		/*先加载图片获取其宽高*/
+		var img_org = new Image();
+		img_org.src = "img/vue-transition.png";
+		$('.img_org').attr('src',img_org.src);
+		img_org.onload = function (){
+			canvas.width = $('.img_org').width();
+			canvas.height = $('.img_org').height();
+			
+			img.crossOrigin = "Anonymous";
+			img.src = "img/vue-transition.png";//这里加ajax返回的图片路径
+			img.onload = function(){
+			ctx.drawImage(img,0,0);
+			draw_rect.init(); //初始函数
+			save.onclick = function (){
+				draw_rect.save();
+				}
+			};
+		}
+		
+        var draw_rect = {
+			start_posX: 0,//距离图片左边的值
+			start_posY: 0,//距离图片右边的值
+			width: 0,//图片马赛克宽
+			height: 0,//图片马赛克高
+			init: function (){
+				this.get_pos();
+			},
+			get_pos: function (){//获取数据
+				var _self = this;
+				canvas.onmousedown = function (e){
+					
+					var target = e.target;
+					var posX = e.clientX - target.offsetLeft;
+					var posY = e.clientY - target.offsetTop;
+					_self.start_posX = posX;
+					_self.start_posY = posY;
+				};
+				canvas.onmouseup = function (e){
+					var target = e.target;
+					var posX = e.clientX - target.offsetLeft;
+					var posY = e.clientY - target.offsetTop;
+					
+					_self.width = posX - _self.start_posX;
+					_self.height = posY - _self.start_posY;
+					
+					
+					_self.draw();//画马赛克
+				};
+			},
+			draw: function (){//画马赛克
+				ctx.beginPath();
+				ctx.fillStyle="#F00";/*设置填充颜色*/ 
+				ctx.lineWidth=10;/*边框的宽度*/ 
+				ctx.fillRect(this.start_posX,this.start_posY,this.width,this.height); 
+			},
+			rest: function (){
+				window.location.reload();
+				//ctx.restore();
+				
+			},
+			save: function (){
+				var image = canvas.toDataURL("image/png");
+				console.log(typeof image);
+				$('.modal-body').empty();
+				$('.modal-body').append("<img src="+image+" class='img-responsive'/>");
+			}
+		}
+		rest.onclick = function (){
+			draw_rect.rest();	
+		}
+		
+
+    </script>
+</body>
+</html>
