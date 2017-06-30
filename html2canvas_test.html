@@ -1,18 +1,281 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-    <title>
-        display/box/float/clear test
-    </title>
+  <title>
+    display/box/float/clear test
+  </title>
 </head>
-<body>
-    <img src="img/0001.JPG" alt="">
+<style>
+  .msc_wrap {
+    position: relative;
+    /*padding: 50px;*/
+  }
 
+  #canvas {
+    position: absolute;
+    top: 50px;
+    left: 50px;
+    z-index: 9000;
+
+  }
+
+  .cst_button {
+    outline: none;
+    border: 0;
+    padding: 10px 25px;
+    color: #e4393c;
+    font-size: 2rem;
+    border-radius: 4px;
+    background: #eee;
+    font-family: "simHei";
+    margin-right: 5px;
+  }
+
+  .msc_copy {
+    visibility: hidden;
+    position: absolute;
+  }
+
+</style>
+<body>
+<div>
+  <button id="save" data-toggle="modal" data-target="#myModal" class="cst_button">保存</button>
+  <button id="rest" class="cst_button">重置</button>
+  <button id="zoom_in" class="cst_button">放大</button>
+  <button id="zoom_out" class="cst_button">缩小</button>
+  <button id="rotate" class="cst_button">顺时针旋转90°</button>
+</div>
+<div style="overflow: auto;display:flex;justify-content:center;align-items:center;" class="aaa">
+  <div class="msc_wrap" style="margin:0 auto;display: inline-block;vertical-align:middle;">
+    <img class="img_org" src="" >
+    <canvas id="canvas"></canvas>
+  </div>
+</div>
+
+<div class="msc_copy">
+
+</div>
+<img class="test" src="" alt="">
+<script type="text/javascript" src="js/jquery-1.11.3.js"></script>
 <script type="text/javascript" src="js/html2canvas.js"></script>
 <script type="text/javascript">
-    html2canvas(document.body).then(function(canvas) {
-        document.body.appendChild(canvas);
-    });
+  var canvas = document.getElementById('canvas');
+  var msc_wrap = document.querySelector('.msc_wrap');
+  var msc_copy = document.querySelector('.msc_copy');
+  var zoom_in = document.querySelector('#zoom_in');
+  var zoom_out = document.querySelector('#zoom_out');
+  var rotate = document.querySelector('#rotate');
+  var aaa = document.querySelector('.aaa');
+  var ctx = canvas.getContext('2d');
+  var storage = window.localStorage;
+
+
+  var img = new Image();
+  /*先加载图片获取其宽高*/
+  var img_org = new Image();
+  img_org.src = "img/0001.JPG";
+  $('.img_org').attr('src', img_org.src);
+  img_org.onload = function () {
+
+    $('.msc_wrap').width($('.img_org').width() + 'px');
+    $('.msc_wrap').height($('.img_org').height() + 'px');
+    if($('.msc_wrap').width() >= $('.msc_wrap').height()){
+      $('.aaa').css('width', $('.msc_wrap').width()+'px');
+      $('.aaa').css('height', $('.msc_wrap').width()+'px');
+    }else{
+      $('.aaa').css('width', $('.msc_wrap').height()+'px');
+      $('.aaa').css('height', $('.msc_wrap').height()+'px');
+    }
+    canvas.width = $('.img_org').width();
+    canvas.height = $('.img_org').height();
+//      img.crossOrigin = "Anonymous";
+//      img.src = "img/0001.JPG";//这里加ajax返回的图片路径
+//      img.onload = function(){
+//        ctx.drawImage(img,0,0);
+    draw_rect.init(); //初始函数
+    save.onclick = function () {
+      draw_rect.save();
+    };
+//      };
+  };
+
+  var draw_rect = {
+    start_posX: 0,//距离图片左边的值
+    start_posY: 0,//距离图片右边的值
+    width: 0,//图片马赛克宽
+    height: 0,//图片马赛克高
+    n: 1,//缩小放大的基数
+    r: 0,//旋转的基数
+    flag: false,
+    init: function () {
+      this.get_pos();
+      this.zoomIn();
+      this.zoomOut();
+      this.rotate();
+    },
+    get_pos: function () {//获取数据
+      var _self = this;
+      canvas.onmousedown = function (e) {
+        var target = e.target;
+        var posX = e.clientX - target.offsetLeft;
+        var posY = e.pageY - target.offsetTop;
+        _self.start_posX = posX;
+        _self.start_posY = posY;
+        _self.flag = true;
+
+      };
+      canvas.onmousemove = function (e) {
+        if (_self.flag == true) {
+          //ctx.clearRect(0,0,canvas.width,canvas.height);
+          var target = e.target;
+          var posX = e.clientX - target.offsetLeft;
+          var posY = e.pageY - target.offsetTop;
+          _self.width = posX - _self.start_posX;
+          _self.height = posY - _self.start_posY;
+          ctx.strokeStyle = '#F00';
+
+          ctx.lineWidth = 4;
+
+          ctx.beginPath();
+          ctx.rect(_self.start_posX, _self.start_posY, _self.width, _self.height);
+          ctx.stroke();
+        }
+
+      };
+      canvas.onmouseup = function (e) {
+        _self.flag = false;
+        var target = e.target;
+        var posX = e.clientX - target.offsetLeft;
+        var posY = e.pageY - target.offsetTop;
+
+        _self.width = posX - _self.start_posX;
+        _self.height = posY - _self.start_posY;
+
+
+        _self.draw();//画马赛克
+      };
+    },
+    draw: function () {//画马赛克
+      ctx.beginPath();
+      ctx.fillStyle = "#F00";
+      /*设置填充颜色*/
+      ctx.lineWidth = 10;
+      /*边框的宽度*/
+      ctx.fillRect(this.start_posX, this.start_posY, this.width, this.height);
+    },
+    rest: function () {
+      window.location.reload();
+      //ctx.restore();
+
+    },
+    save: function () {
+      var image = canvas.toDataURL("image/png");
+
+      html2canvas(aaa).then(function (canvas) {
+        msc_copy.appendChild(canvas);
+        console.log(canvas.toDataURL("image/png"));
+        $('.test').attr('src', canvas.toDataURL("image/png"));
+      });
+//        console.log(image);
+//        $('.modal-body').empty();
+//        $('.modal-body').append("<img src="+image+" class='img-responsive'/>");
+    },
+    zoomIn: function () {
+      var _self = this;
+      zoom_in.onclick = function () {
+        $('.img_org').css('max-width', '100%');
+//          先把原图存放到缓存中
+        storage.setItem("zoomOut", canvas.toDataURL("image/png"));
+//            改变canvas大小
+        _self.n += 0.2;
+        var w = $('.img_org').width();
+        var h = $('.img_org').height();
+//          从缓存中取出画到画板上
+        var base64_data = storage.getItem('zoomOut');
+
+        var canvas1 = document.getElementById('canvas');
+        var ctx1 = canvas1.getContext('2d');
+        var img = new Image;
+        img.crossOrigin = 'Anonymous';
+        img.onload = function () {
+          canvas1.height = h * _self.n;
+          canvas1.width = w * _self.n;
+          ctx1.drawImage(img, 0, 0, w * _self.n, h * _self.n);
+        };
+        img.src = base64_data;
+
+        $('.img_org').width(w * _self.n + 'px');
+        $('.img_org').height(h * _self.n + 'px');
+
+        $('.msc_wrap').width(w * _self.n + 'px');
+        $('.msc_wrap').height(h * _self.n + 'px');
+      }
+    },
+    zoomOut: function () {
+      var _self = this;
+      zoom_out.onclick = function () {
+        $('.img_org').css('max-width', '100%');
+//          先把原图存放到缓存中
+        storage.setItem("zoomIn", canvas.toDataURL("image/png"));
+//            改变canvas大小
+        _self.n += 0.2;
+        var w = $('.img_org').width();
+        var h = $('.img_org').height();
+//          从缓存中取出画到画板上
+        var base64_data = storage.getItem('zoomIn');
+
+        var canvas1 = document.getElementById('canvas');
+        var ctx1 = canvas1.getContext('2d');
+        var img = new Image;
+        img.crossOrigin = 'Anonymous';
+        img.onload = function () {
+          canvas1.height = h / _self.n;
+          canvas1.width = w / _self.n;
+          ctx1.drawImage(img, 0, 0, w / _self.n, h / _self.n);
+        };
+        img.src = base64_data;
+
+        $('.img_org').width(w / _self.n + 'px');
+        $('.img_org').height(h / _self.n + 'px');
+
+        $('.msc_wrap').width(w / _self.n + 'px');
+        $('.msc_wrap').height(h / _self.n + 'px');
+      }
+    },
+    rotate: function(){
+      var _self = this;
+      rotate.onclick = function (){
+        _self.r++;
+        $('.img_org').css('max-width', '100%');
+//        $('.aaa').css('transformOrigin','center center');
+        var w = $('.msc_wrap').width();
+        var h = $('.msc_wrap').height();
+//        if(_self.r%2 == 1){
+//          $('.msc_wrap').width(h + 'px');
+//          $('.msc_wrap').height(w + 'px');
+//
+//        }else{
+//          $('.msc_wrap').width(w + 'px');
+//          $('.msc_wrap').height(h + 'px');
+//        }
+        if(w >= h){
+          $('.aaa').css('width', $('.msc_wrap').width()+'px');
+          $('.aaa').css('height', $('.msc_wrap').width()+'px');
+        }else{
+          $('.aaa').css('width', $('.msc_wrap').height()+'px');
+          $('.aaa').css('height', $('.msc_wrap').height()+'px');
+        }
+        $('.msc_wrap').css('transform', 'rotate('+ 90*_self.r +'deg)');
+//        $('.msc_wrap').css('transform', 'rotate('+ 90*_self.r +'deg)');
+
+      }
+    }
+  }
+  rest.onclick = function () {
+
+  }
+
+
 </script>
 </body>
 </html>
