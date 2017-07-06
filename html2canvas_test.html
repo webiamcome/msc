@@ -1,281 +1,469 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-  <title>
-    display/box/float/clear test
-  </title>
+    <meta charset="UTF-8">
+    <title>
+        display/box/float/clear test
+    </title>
 </head>
 <style>
-  .msc_wrap {
-    position: relative;
-    /*padding: 50px;*/
-  }
+    html,body{
+        margin: 0;
+        padding: 0;
+    }
+    body{
+        padding: 10px;
+    }
+    .msc_wrap {
+        position: relative;
+        /*padding: 50px;*/
+    }
 
-  #canvas {
-    position: absolute;
-    top: 50px;
-    left: 50px;
-    z-index: 9000;
+    #canvas {
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        z-index: 9000;
 
-  }
+    }
 
-  .cst_button {
-    outline: none;
-    border: 0;
-    padding: 10px 25px;
-    color: #e4393c;
-    font-size: 2rem;
-    border-radius: 4px;
-    background: #eee;
-    font-family: "simHei";
-    margin-right: 5px;
-  }
+    .cst_button {
+        outline: none;
+        border: 0;
+        padding: 10px 25px;
+        color: #e4393c;
+        font-size: 2rem;
+        border-radius: 4px;
+        background: #eee;
+        font-family: "simHei";
+        margin-right: 5px;
+    }
 
-  .msc_copy {
-    visibility: hidden;
-    position: absolute;
-  }
+    .msc_copy {
+        visibility: hidden;
+        position: absolute;
+    }
+
+    .all_wrap{
+        /*overflow: auto;*/
+        display:flex;
+        justify-content:center;
+        align-items:center;
+        margin-top: 5px;
+    }
 
 </style>
 <body>
 <div>
-  <button id="save" data-toggle="modal" data-target="#myModal" class="cst_button">保存</button>
-  <button id="rest" class="cst_button">重置</button>
-  <button id="zoom_in" class="cst_button">放大</button>
-  <button id="zoom_out" class="cst_button">缩小</button>
-  <button id="rotate" class="cst_button">顺时针旋转90°</button>
+    <button id="setmsc" class="cst_button">打码</button>
+    <button id="save" class="cst_button">保存</button>
+    <button id="rest" class="cst_button">重置</button>
+    <button id="zoom_in" class="cst_button">放大</button>
+    <button id="zoom_out" class="cst_button">缩小</button>
+    <button id="rotate" class="cst_button">顺时针旋转90°</button>
 </div>
-<div style="overflow: auto;display:flex;justify-content:center;align-items:center;" class="aaa">
-  <div class="msc_wrap" style="margin:0 auto;display: inline-block;vertical-align:middle;">
-    <img class="img_org" src="" >
-    <canvas id="canvas"></canvas>
-  </div>
+<div style="width: 1000px;height:500px;overflow: auto;">
+    <div class="all_wrap" >
+        <div class="msc_wrap" style="margin:0 auto;display: inline-block;vertical-align:middle;">
+            <img class="img_org" src="" >
+            <canvas id="canvas"></canvas>
+            <img class="test" src="" alt="">
+        </div>
+    </div>
 </div>
 
 <div class="msc_copy">
 
 </div>
-<img class="test" src="" alt="">
+
 <script type="text/javascript" src="js/jquery-1.11.3.js"></script>
 <script type="text/javascript" src="js/html2canvas.js"></script>
 <script type="text/javascript">
-  var canvas = document.getElementById('canvas');
-  var msc_wrap = document.querySelector('.msc_wrap');
-  var msc_copy = document.querySelector('.msc_copy');
-  var zoom_in = document.querySelector('#zoom_in');
-  var zoom_out = document.querySelector('#zoom_out');
-  var rotate = document.querySelector('#rotate');
-  var aaa = document.querySelector('.aaa');
-  var ctx = canvas.getContext('2d');
-  var storage = window.localStorage;
+    var canvas = document.getElementById('canvas');
+    var msc_wrap = document.querySelector('.msc_wrap');
+    var msc_copy = document.querySelector('.msc_copy');
+    var img_org = document.querySelector('.img_org');
+    var zoom_in = document.querySelector('#zoom_in');
+    var setmsc = document.querySelector('#setmsc');
+    var zoom_out = document.querySelector('#zoom_out');
+    var rotate = document.querySelector('#rotate');
+    var all_wrap = document.querySelector('.all_wrap');
+    var ctx = canvas.getContext('2d');
+    var storage = window.localStorage;
+    var img_org_width = 0;//保存原图原始宽
+    var img_org_height = 0;//保存原图原始高
+    var r_w = 0;
+    var r_h = 0;
 
 
-  var img = new Image();
-  /*先加载图片获取其宽高*/
-  var img_org = new Image();
-  img_org.src = "img/0001.JPG";
-  $('.img_org').attr('src', img_org.src);
-  img_org.onload = function () {
+    var img = new Image();
+    /*先加载图片获取其宽高*/
+    var img_org = new Image();
+    img_org.src = "img/0001.JPG";//后台传原始图片
+    $('.img_org').attr('src', img_org.src);
+    img_org.onload = function () {
 
-    $('.msc_wrap').width($('.img_org').width() + 'px');
-    $('.msc_wrap').height($('.img_org').height() + 'px');
-    if($('.msc_wrap').width() >= $('.msc_wrap').height()){
-      $('.aaa').css('width', $('.msc_wrap').width()+'px');
-      $('.aaa').css('height', $('.msc_wrap').width()+'px');
-    }else{
-      $('.aaa').css('width', $('.msc_wrap').height()+'px');
-      $('.aaa').css('height', $('.msc_wrap').height()+'px');
-    }
-    canvas.width = $('.img_org').width();
-    canvas.height = $('.img_org').height();
+        $('.msc_wrap').width($('.img_org').width() + 'px');
+        $('.msc_wrap').height($('.img_org').height() + 'px');
+
+        img_org_width = $('.img_org').width();
+        img_org_height = $('.img_org').height();
+
+        canvas.width = $('.img_org').width();
+        canvas.height = $('.img_org').height();
+
+        wrap_size($('.all_wrap'),$('.msc_wrap').width(),$('.msc_wrap').height());
 //      img.crossOrigin = "Anonymous";
 //      img.src = "img/0001.JPG";//这里加ajax返回的图片路径
 //      img.onload = function(){
 //        ctx.drawImage(img,0,0);
-    draw_rect.init(); //初始函数
-    save.onclick = function () {
-      draw_rect.save();
-    };
+        draw_rect.init(); //初始函数
+        save.onclick = function () {
+            draw_rect.save();
+        };
+        rest.onclick = function () {
+            draw_rect.rest();
+        };
+        setmsc.onclick = function () {
+            draw_rect.get_pos();
+        };
+
 //      };
-  };
+    };
 
-  var draw_rect = {
-    start_posX: 0,//距离图片左边的值
-    start_posY: 0,//距离图片右边的值
-    width: 0,//图片马赛克宽
-    height: 0,//图片马赛克高
-    n: 1,//缩小放大的基数
-    r: 0,//旋转的基数
-    flag: false,
-    init: function () {
-      this.get_pos();
-      this.zoomIn();
-      this.zoomOut();
-      this.rotate();
-    },
-    get_pos: function () {//获取数据
-      var _self = this;
-      canvas.onmousedown = function (e) {
-        var target = e.target;
-        var posX = e.clientX - target.offsetLeft;
-        var posY = e.pageY - target.offsetTop;
-        _self.start_posX = posX;
-        _self.start_posY = posY;
-        _self.flag = true;
+    var draw_rect = {
+        start_posX: 0,//距离图片左边的值
+        start_posY: 0,//距离图片右边的值
+        width: 0,//图片马赛克宽
+        height: 0,//图片马赛克高
+        n: 1,//缩小放大的基数
+        r: 0,//旋转的基数
+        flag: false,//mousemove开关
+        init: function () {
+//            this.get_pos();
+            this.zoomIn();
+            this.zoomOut();
+            this.rotate();
+        },
+        get_pos: function () {//获取数据
+            var _self = this;
 
-      };
-      canvas.onmousemove = function (e) {
-        if (_self.flag == true) {
-          //ctx.clearRect(0,0,canvas.width,canvas.height);
-          var target = e.target;
-          var posX = e.clientX - target.offsetLeft;
-          var posY = e.pageY - target.offsetTop;
-          _self.width = posX - _self.start_posX;
-          _self.height = posY - _self.start_posY;
-          ctx.strokeStyle = '#F00';
-
-          ctx.lineWidth = 4;
-
-          ctx.beginPath();
-          ctx.rect(_self.start_posX, _self.start_posY, _self.width, _self.height);
-          ctx.stroke();
-        }
-
-      };
-      canvas.onmouseup = function (e) {
-        _self.flag = false;
-        var target = e.target;
-        var posX = e.clientX - target.offsetLeft;
-        var posY = e.pageY - target.offsetTop;
-
-        _self.width = posX - _self.start_posX;
-        _self.height = posY - _self.start_posY;
+            canvas.onmousedown = function (e) {
+                console.log($('.img_org').offset().left+'-'+$('.img_org').offset().top+','+e.pageX+'-'+e.pageY);
+                var target = e.target;
+                var posX = e.pageX - $('.img_org').offset().left;
+                var posY = e.pageY - $('.img_org').offset().top;
+                _self.start_posX = posX;
+                _self.start_posY = posY;
+                _self.flag = true;
+            };
+            canvas.onmousemove = function (e) {
+                if (_self.flag == true) {
+                    //ctx.clearRect(0,0,canvas.width,canvas.height);
+                    var target = e.target;
+                    var posX = e.pageX - $('.img_org').offset().left;
+                    var posY = e.pageY - $('.img_org').offset().top;
+                    _self.width = posX - _self.start_posX;
+                    _self.height = posY - _self.start_posY;
 
 
-        _self.draw();//画马赛克
-      };
-    },
-    draw: function () {//画马赛克
-      ctx.beginPath();
-      ctx.fillStyle = "#F00";
-      /*设置填充颜色*/
-      ctx.lineWidth = 10;
-      /*边框的宽度*/
-      ctx.fillRect(this.start_posX, this.start_posY, this.width, this.height);
-    },
-    rest: function () {
-      window.location.reload();
-      //ctx.restore();
+                    ctx.strokeStyle = 'rgba(201,188,191,0.8)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    ctx.rect(_self.start_posX, _self.start_posY, _self.width, _self.height);
+                    ctx.stroke();
 
-    },
-    save: function () {
-      var image = canvas.toDataURL("image/png");
+                }
 
-      html2canvas(aaa).then(function (canvas) {
-        msc_copy.appendChild(canvas);
-        console.log(canvas.toDataURL("image/png"));
-        $('.test').attr('src', canvas.toDataURL("image/png"));
-      });
-//        console.log(image);
-//        $('.modal-body').empty();
-//        $('.modal-body').append("<img src="+image+" class='img-responsive'/>");
-    },
-    zoomIn: function () {
-      var _self = this;
-      zoom_in.onclick = function () {
-        $('.img_org').css('max-width', '100%');
-//          先把原图存放到缓存中
-        storage.setItem("zoomOut", canvas.toDataURL("image/png"));
-//            改变canvas大小
-        _self.n += 0.2;
-        var w = $('.img_org').width();
-        var h = $('.img_org').height();
-//          从缓存中取出画到画板上
-        var base64_data = storage.getItem('zoomOut');
 
-        var canvas1 = document.getElementById('canvas');
-        var ctx1 = canvas1.getContext('2d');
-        var img = new Image;
-        img.crossOrigin = 'Anonymous';
-        img.onload = function () {
-          canvas1.height = h * _self.n;
-          canvas1.width = w * _self.n;
-          ctx1.drawImage(img, 0, 0, w * _self.n, h * _self.n);
-        };
-        img.src = base64_data;
+            };
+            canvas.onmouseup = function (e) {
+                _self.flag = false;
+                var target = e.target;
+                var posX = e.pageX - $('.img_org').offset().left;
+                var posY = e.pageY - $('.img_org').offset().top;
 
-        $('.img_org').width(w * _self.n + 'px');
-        $('.img_org').height(h * _self.n + 'px');
+                _self.width = posX - _self.start_posX;
+                _self.height = posY - _self.start_posY;
 
-        $('.msc_wrap').width(w * _self.n + 'px');
-        $('.msc_wrap').height(h * _self.n + 'px');
-      }
-    },
-    zoomOut: function () {
-      var _self = this;
-      zoom_out.onclick = function () {
-        $('.img_org').css('max-width', '100%');
-//          先把原图存放到缓存中
-        storage.setItem("zoomIn", canvas.toDataURL("image/png"));
-//            改变canvas大小
-        _self.n += 0.2;
-        var w = $('.img_org').width();
-        var h = $('.img_org').height();
-//          从缓存中取出画到画板上
-        var base64_data = storage.getItem('zoomIn');
+                _self.draw();//画马赛克
 
-        var canvas1 = document.getElementById('canvas');
-        var ctx1 = canvas1.getContext('2d');
-        var img = new Image;
-        img.crossOrigin = 'Anonymous';
-        img.onload = function () {
-          canvas1.height = h / _self.n;
-          canvas1.width = w / _self.n;
-          ctx1.drawImage(img, 0, 0, w / _self.n, h / _self.n);
-        };
-        img.src = base64_data;
 
-        $('.img_org').width(w / _self.n + 'px');
-        $('.img_org').height(h / _self.n + 'px');
+            };
+        },
+        draw: function () {//画马赛克
+            /*渐变*/
+            var grd=ctx.createLinearGradient(this.start_posX,this.start_posY,this.start_posX+this.width,this.start_posY+this.height);
+            grd.addColorStop(0,"rgba(199,198,193,1)");
+            grd.addColorStop(1,"rgba(199,198,193,1)");
+            ctx.beginPath();
+            ctx.fillStyle = grd;
+            /!*设置填充颜色*!/
+            ctx.lineWidth = 1;
+            /!*边框的宽度*!/
+            ctx.fillRect(this.start_posX, this.start_posY, this.width, this.height);
+            /*console.log(this.start_posX+'-'+this.start_posY+'-'+this.width+'-'+this.height);*/
 
-        $('.msc_wrap').width(w / _self.n + 'px');
-        $('.msc_wrap').height(h / _self.n + 'px');
-      }
-    },
-    rotate: function(){
-      var _self = this;
-      rotate.onclick = function (){
-        _self.r++;
-        $('.img_org').css('max-width', '100%');
-//        $('.aaa').css('transformOrigin','center center');
-        var w = $('.msc_wrap').width();
-        var h = $('.msc_wrap').height();
-//        if(_self.r%2 == 1){
-//          $('.msc_wrap').width(h + 'px');
-//          $('.msc_wrap').height(w + 'px');
+
+        },
+        rest: function () {
+            window.location.reload();
+        },
+        save: function () {
+
+//          //          先把原图存放到缓存中
+//          storage.setItem("saveMsc", canvas.toDataURL("image/png"));
+////            改变canvas大小
+//          var w = img_org_width;
+//          var h = img_org_height;
 //
-//        }else{
+////          从缓存中取出画到画板上
+//          var base64_data = storage.getItem('saveMsc');
+//
+//          var img = new Image;
+//          img.crossOrigin = 'Anonymous';
+//          img.onload = function () {
+//            canvas.width = w;
+//            canvas.height = h;
+//            ctx.drawImage(img, 0, 0, w, h);
+//
+//            if(r_w == 0){
+//              r_w = $('.img_org').width();
+//            }
+//            if(r_h == 0){
+//              r_h = $('.img_org').height();
+//            }
+//
+//            if(_self.r%4 == 1){
+//              ctx.translate(0,r_h);
+//              ctx.rotate(-90*Math.PI/180);
+//            }else if(_self.r%4 == 2){
+//              ctx.translate(0,r_w);
+//              ctx.rotate(-90*Math.PI/180);
+//            }else if(_self.r%4 == 3){
+//              ctx.translate(0,r_h);
+//              ctx.rotate(-90*Math.PI/180);
+//            }
+//          };
+//          img.src = base64_data;
+//
+//          $('.img_org').width(w + 'px');
+//          $('.img_org').height(h + 'px');
+//
 //          $('.msc_wrap').width(w + 'px');
 //          $('.msc_wrap').height(h + 'px');
-//        }
-        if(w >= h){
-          $('.aaa').css('width', $('.msc_wrap').width()+'px');
-          $('.aaa').css('height', $('.msc_wrap').width()+'px');
-        }else{
-          $('.aaa').css('width', $('.msc_wrap').height()+'px');
-          $('.aaa').css('height', $('.msc_wrap').height()+'px');
+//
+//          r_w = w;
+//          r_h = h;
+//            /*改变最外层容器大小*/
+//          wrap_size($('.all_wrap'),w,h);
+
+          //          先把原图存放到缓存中
+          storage.setItem("saveMsc", canvas.toDataURL("image/png"));
+//            改变canvas大小
+          var w = $('.img_org').width();
+          var h = $('.img_org').height();
+
+          var n = img_org_width / w;
+
+//          从缓存中取出画到画板上
+          var base64_data = storage.getItem('saveMsc');
+
+          var img = new Image;
+          img.crossOrigin = 'Anonymous';
+          img.onload = function () {
+            $('.img_org').width(w * n + 'px');
+            $('.img_org').height(h * n + 'px');
+
+            $('.msc_wrap').width(w * n + 'px');
+            $('.msc_wrap').height(h * n + 'px');
+
+            wrap_size($('.all_wrap'),w * n,h * n);
+            canvas.height = h * n;
+            canvas.width = w * n;
+            ctx.drawImage(img, 0, 0, w * n, h * n);
+            html2canvas(all_wrap).then(function (canvas) {
+//                msc_copy.appendChild(canvas);
+                console.log(canvas.toDataURL("image/png").length);
+              $('.test').attr('src', canvas.toDataURL("image/png"));
+            });
+          };
+          img.src = base64_data;
+
+        },
+        zoomIn: function () {
+            var _self = this;
+            zoom_in.onclick = function () {
+                $('.img_org').css('max-width', '100%');
+//          先把原图存放到缓存中
+                storage.setItem("zoomOut", canvas.toDataURL("image/png"));
+//            改变canvas大小
+                _self.n += 0.2;
+                var w = $('.img_org').width();
+                var h = $('.img_org').height();
+
+//          从缓存中取出画到画板上
+                var base64_data = storage.getItem('zoomOut');
+
+//                var canvas1 = document.getElementById('canvas');
+//                var ctx1 = canvas1.getContext('2d');
+                var img = new Image;
+                img.crossOrigin = 'Anonymous';
+                img.onload = function () {
+                    canvas.height = h * _self.n;
+                    canvas.width = w * _self.n;
+                    ctx.drawImage(img, 0, 0, w * _self.n, h * _self.n);
+
+                  if(r_w == 0){
+                    r_w = $('.img_org').width();
+                  }
+                  if(r_h == 0){
+                    r_h = $('.img_org').height();
+                  }
+
+                  if(_self.r%4 == 1){
+                    ctx.translate(0,r_h);
+                    ctx.rotate(-90*Math.PI/180);
+                  }else if(_self.r%4 == 2){
+                    ctx.translate(0,r_w);
+                    ctx.rotate(-90*Math.PI/180);
+                  }else if(_self.r%4 == 3){
+                    ctx.translate(0,r_h);
+                    ctx.rotate(-90*Math.PI/180);
+                  }
+                };
+                img.src = base64_data;
+
+                $('.img_org').width(w * _self.n + 'px');
+                $('.img_org').height(h * _self.n + 'px');
+
+                $('.msc_wrap').width(w * _self.n + 'px');
+                $('.msc_wrap').height(h * _self.n + 'px');
+
+                r_w = w * _self.n;
+                r_h = h * _self.n;
+//              if(_self.r%4 == 1){
+//                ctx.translate(0,r_h);
+//              }else if(_self.r%4 == 2){
+//                ctx.translate(0,r_w);
+//              }else if(_self.r%4 == 3){
+//                ctx.translate(0,r_h);
+//              }else if(_self.r%4 == 4){
+//                ctx.translate(0,r_w);
+//              }
+//              ctx.rotate(-90*Math.PI/180);
+                /*改变最外层容器大小*/
+                wrap_size($('.all_wrap'),w * _self.n,h * _self.n);
+            }
+        },
+        zoomOut: function () {
+            var _self = this;
+            zoom_out.onclick = function () {
+                $('.img_org').css('max-width', '100%');
+//          先把原图存放到缓存中
+                storage.setItem("zoomIn", canvas.toDataURL("image/png"));
+//            改变canvas大小
+                _self.n += 0.2;
+                var w = $('.img_org').width();
+                var h = $('.img_org').height();
+//          从缓存中取出画到画板上
+                var base64_data = storage.getItem('zoomIn');
+
+//                var canvas1 = document.getElementById('canvas');
+//                var ctx1 = canvas1.getContext('2d');
+                var img = new Image;
+                img.crossOrigin = 'Anonymous';
+                img.onload = function () {
+                    canvas.height = h / _self.n;
+                    canvas.width = w / _self.n;
+                    ctx.drawImage(img, 0, 0, w / _self.n, h / _self.n);
+                  if(r_w == 0){
+                    r_w = $('.img_org').width();
+                  }
+                  if(r_h == 0){
+                    r_h = $('.img_org').height();
+                  }
+
+                  if(_self.r%4 == 1){
+                    ctx.translate(0,r_h);
+                    ctx.rotate(-90*Math.PI/180);
+                  }else if(_self.r%4 == 2){
+                    ctx.translate(0,r_w);
+                    ctx.rotate(-90*Math.PI/180);
+                  }else if(_self.r%4 == 3){
+                    ctx.translate(0,r_h);
+                    ctx.rotate(-90*Math.PI/180);
+                  }
+//                  else if(_self.r%4 == 0){
+//                    ctx.translate(0,r_w);
+//                    ctx.rotate(-90*Math.PI/180);
+//                    console.log('4');
+//                  }
+                };
+                img.src = base64_data;
+                $('.img_org').width(w / _self.n + 'px');
+                $('.img_org').height(h / _self.n + 'px');
+
+                $('.msc_wrap').width(w / _self.n + 'px');
+                $('.msc_wrap').height(h / _self.n + 'px');
+
+                r_w = w / _self.n;
+                r_h = h / _self.n;
+                /*改变最外层容器大小*/
+                wrap_size($('.all_wrap'),w / _self.n,h / _self.n);
+
+
+
+            }
+        },
+        rotate: function(){
+            var _self = this;
+            rotate.onclick = function (){
+                _self.r++;
+                $('.img_org').css('max-width', '100%');
+                var w = $('.msc_wrap').width();
+                var h = $('.msc_wrap').height();
+                if(w >= h){
+                    $('.all_wrap').css('width', $('.msc_wrap').width()+'px');
+                    $('.all_wrap').css('height', $('.msc_wrap').width()+'px');
+                }else{
+                    $('.all_wrap').css('width', $('.msc_wrap').height()+'px');
+                    $('.all_wrap').css('height', $('.msc_wrap').height()+'px');
+                }
+
+                $('.msc_wrap').css('transform', 'rotate('+ 90*_self.r +'deg)');
+//                改变原点位置
+              if(r_w == 0){
+                r_w = $('.img_org').width();
+              }
+              if(r_h == 0){
+                r_h = $('.img_org').height();
+              }
+
+              if(_self.r%4 == 1){
+                ctx.translate(0,r_h);
+              }else if(_self.r%4 == 2){
+                ctx.translate(0,r_w);
+              }else if(_self.r%4 == 3){
+                ctx.translate(0,r_h);
+              }else if(_self.r%4 == 0){
+                ctx.translate(0,r_w);
+              }
+              ctx.rotate(-90*Math.PI/180);
+//              _self.get_pos();
+            }
         }
-        $('.msc_wrap').css('transform', 'rotate('+ 90*_self.r +'deg)');
-//        $('.msc_wrap').css('transform', 'rotate('+ 90*_self.r +'deg)');
-
-      }
+    };
+    /*最外层容器随放大缩小改变大小*/
+    function wrap_size(sel,w,h){
+        if(w >= h){
+            sel.css('width',w+'px');
+            sel.css('height',w+'px');
+        }else{
+            sel.css('width',h+'px');
+            sel.css('height',h+'px');
+        }
     }
-  }
-  rest.onclick = function () {
-
-  }
-
-
 </script>
 </body>
 </html>
